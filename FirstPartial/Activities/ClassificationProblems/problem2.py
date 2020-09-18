@@ -84,7 +84,7 @@ print('ACC = ', acc)
 # 5-fold cross-validation
 print("\nk-NN (para k = 3)\n")
 kf = KFold(n_splits = 5, shuffle = True)
-clf = neigh = KNeighborsClassifier(n_neighbors=3)
+clf = KNeighborsClassifier(n_neighbors=3)
 
 acc = 0
 for train_index, test_index in kf.split(x):
@@ -114,7 +114,7 @@ print('ACC = ', acc)
 # 5-fold cross-validation
 print("\nÁrbol de decisión\n")
 kf = KFold(n_splits = 5, shuffle = True)
-clf = neigh = DecisionTreeClassifier(random_state=0)
+clf = DecisionTreeClassifier(random_state=0)
 
 acc = 0
 for train_index, test_index in kf.split(x):
