@@ -1,131 +1,146 @@
+import math
+from simpleai.search import SearchProblem, astar
 
-class Node():
-    """A node class for A* Pathfinding"""
-    def __init__(self, parent=None, position=None):
-        self.parent = parent
-        self.position = position
+# Class containing the methods to solve the maze
+class MazeSolver(SearchProblem):
+    # Initialize the class 
+    def __init__(self, board):
+        self.board = board
+        self.goal = (0, 0)
 
-        self.g = 0
-        self.h = 0
-        self.f = 0
+        for y in range(len(self.board)):
+            for x in range(len(self.board[y])):
+                if self.board[y][x].lower() == "o":
+                    self.initial = (x, y)
+                elif self.board[y][x].lower() == "x":
+                    self.goal = (x, y)
 
-    def __eq__(self, other):
-        return self.position == other.position
+        super(MazeSolver, self).__init__(initial_state=self.initial)
 
+    # Define the method that takes actions
+    # to arrive at the solution
+    def actions(self, state):
+        actions = []
+        for action in COSTS.keys():
+            newx, newy = self.result(state, action)
+            if self.board[newy][newx] != "#":
+                actions.append(action)
 
-def astar(maze, start, end):
-    
-    # Create start and end node
-    start_node = Node(None, start)
-    start_node.g = start_node.h = start_node.f = 0
-    end_node = Node(None, end)
-    end_node.g = end_node.h = end_node.f = 0
+        return actions
 
-    # Initialize both open and closed list
-    open_list = []
-    closed_list = []
+    # Update the state based on the action
+    def result(self, state, action):
+        x, y = state
 
-    # Add the start node
-    open_list.append(start_node)
+        if action.count("up"):
+            y -= 1
+        if action.count("down"):
+            y += 1
+        if action.count("left"):
+            x -= 1
+        if action.count("right"):
+            x += 1
 
-    # Loop until you find the end
-    while len(open_list) > 0:
+        new_state = (x, y)
 
-        # Get the current node
-        current_node = open_list[0]
-        current_index = 0
-        for index, item in enumerate(open_list):
-            if item.f < current_node.f:
-                current_node = item
-                current_index = index
+        return new_state
 
-        # Pop current off open list, add to closed list
-        open_list.pop(current_index)
-        closed_list.append(current_node)
+    # Check if we have reached the goal
+    def is_goal(self, state):
+        return state == self.goal
 
-        # Found the goal
-        if current_node == end_node:
-            path = []
-            current = current_node
-            while current is not None:
-                path.append(current.position)
-                current = current.parent
-            return path[::-1]  # Return reversed path
+    # Compute the cost of taking an action
+    def cost(self, state, action, state2):
+        return COSTS[action]
 
-        # Generate children
-        children = []
-        # Adjacent squares
-        for new_position in [(0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]:
+    # Heuristic that we use to arrive at the solution
+    def heuristic(self, state):
+        x, y = state
+        gx, gy = self.goal
 
-            # Get node position
-            node_position = (
-                current_node.position[0] + new_position[0], current_node.position[1] + new_position[1])
+        return math.sqrt((x - gx) ** 2 + (y - gy) ** 2)
 
-            # Make sure within range
-            if node_position[0] > (len(maze) - 1) or node_position[0] < 0 or node_position[1] > (len(maze[len(maze)-1]) - 1) or node_position[1] < 0:
-                continue
+if __name__ == "__main__":
+    # Define the map
+    MAP = """
+    ##############################
+    #         #              #   #
+    # ####    ########       #   #
+    #  o #    #              #   #
+    #    ###     #####  ######   #
+    #      #   ###   #           #
+    #      #     #   #  #  #   ###
+    #     #####    #    #  # x   #
+    #              #       #     #
+    ##############################
+    """
+    '''
+    MAP2 = """
+    ##############################
+    #o        #              #   #
+    #  ###  # ########       #   #
+    # # ##    #              #   #
+    #    ###     #####  ######   #
+    #      #   ###   #           #
+    #  ## ##     #   #  #  #   ###
+    #     #####    #    #  # #   #
+    #              #       #   x #
+    ##############################
+    """
 
-            # Make sure walkable terrain
-            if maze[node_position[0]][node_position[1]] != 0:
-                continue
+    MAP3 = """
+    ##############################
+    #    ##   # #       #    # x #
+    # o  #    ########       #   #
+    # #  #    #        #     #   #
+    #    ##############  ######  #
+    #      #   ###   #           #
+    #      #     #   #  #  #   ###
+    #     #####    #    #  # #   #
+    #              #       #     #
+    ##############################
+    """
+    '''
+    # Convert map to a list
+    print(MAP)
+    MAP = [list(x) for x in MAP.split("\n") if x]
 
-            # Create new node
-            new_node = Node(current_node, node_position)
+    # Define cost of moving around the map
+    cost_regular = 1.0
+    cost_diagonal = 1.7
 
-            # Append
-            children.append(new_node)
+    # Create the cost dictionary
+    COSTS = {
+        "up": cost_regular,
+        "down": cost_regular,
+        "left": cost_regular,
+        "right": cost_regular,
+        "up left": cost_diagonal,
+        "up right": cost_diagonal,
+        "down left": cost_diagonal,
+        "down right": cost_diagonal,
+    }
 
-        # Loop through children
-        for child in children:
+    # Create maze solver object
+    problem = MazeSolver(MAP)
 
-            # Child is on the closed list
-            for closed_child in closed_list:
-                if child == closed_child:
-                    continue
+    # Run the solver
+    result = astar(problem, graph_search=True)
 
-            # Create the f, g, and h values
-            child.g = current_node.g + 1
-            child.h = ((child.position[0] - end_node.position[0]) **
-                       2) + ((child.position[1] - end_node.position[1]) ** 2)
-            child.f = child.g + child.h
+    # Extract the path
+    path = [x[1] for x in result.path()]
 
-            # Child is already in the open list
-            for open_node in open_list:
-                if child == open_node and child.g > open_node.g:
-                    continue
+    # Print the result
+    print()
+    for y in range(len(MAP)):
+        for x in range(len(MAP[y])):
+            if (x, y) == problem.initial:
+                print('o', end='')
+            elif (x, y) == problem.goal:
+                print('x', end='')
+            elif (x, y) in path:
+                print('·', end='')
+            else:
+                print(MAP[y][x], end='')
 
-            # Add the child to the open list
-            open_list.append(child)
-
-
-def convert_to_valid_line(str):
-    return [int(i) for i in list(str.strip().replace(' ', '0').replace('+', '1').replace('O', '0').replace('X', '0'))]
-
-
-def main():
-    maze_grahp = "\
-        ++++++++++++++++++++++\n\
-        + O +   ++ ++        +\n\
-        +     +     +++++++ ++\n\
-        + +    ++  ++++ +++ ++\n\
-        + +   + + ++         +\n\
-        +          ++  ++  + +\n\
-        +++++ + +      ++  + +\n\
-        +++++ +++  + +  ++   +\n\
-        +          + +  + +  +\n\
-        +++++ +  + + +     X +\n\
-        ++++++++++++++++++++++\
-    "
-    maze = []
-    for line in maze_grahp.splitlines():
-        maze.append(convert_to_valid_line(line))
-
-    start = (1, 2)
-    end = (9, 19)
-
-    path = astar(maze, start, end)
-    print(path)
-
-
-if __name__ == '__main__':
-    main()
+        print()
