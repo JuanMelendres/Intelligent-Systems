@@ -14,9 +14,9 @@ class MazeSolver(SearchProblem):
 
         for y in range(len(self.board)):
             for x in range(len(self.board[y])):
-                if self.board[y][x].lower() == "o":
+                if self.board[y][x] == "O":
                     self.initial = (x, y)
-                elif self.board[y][x].lower() == "x":
+                elif self.board[y][x] == "X":
                     self.goal = (x, y)
 
         super(MazeSolver, self).__init__(initial_state=self.initial)
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     # Define the map
     MAP = """
     ++++++++++++++++++++++
-    + o +   ++ ++        +
+    + O +   ++ ++        +
     +     +     +++++++ ++
     + +    ++  ++++ +++ ++
     + +   + + ++         +
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     +++++ + +      ++  + +
     +++++ +++  + +  ++   +
     +          + +  + +  +
-    +++++ +  + + +     x +
+    +++++ +  + + +     X +
     ++++++++++++++++++++++
     """
 
@@ -155,9 +155,9 @@ if __name__ == "__main__":
     for y in range(len(MAP)):
         for x in range(len(MAP[y])):
             if (x, y) == problem.initial:
-                print('o', end='')
+                print('O', end='')
             elif (x, y) == problem.goal:
-                print('x', end='')
+                print('X', end='')
             elif (x, y) in path:
                 print('*', end='')
             else:
